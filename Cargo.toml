@@ -1,0 +1,14 @@
+[package]
+name = "learning"
+version = "0.1.0"
+edition = "2024"
+description = "Small exercises for learning Rust, with a runner that checks your progress"
+publish = false
+
+[dependencies]
+
+[workspace]
+members = ["exercises"]
+exclude = ["solutions"]
+# Plain `cargo build` / `cargo test` should only touch the runner.
+default-members = ["."]
