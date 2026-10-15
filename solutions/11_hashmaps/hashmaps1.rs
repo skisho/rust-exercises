@@ -1,18 +1,44 @@
 // hashmaps1.rs - solution
 //
-// `HashMap::new()` creates an empty map; the key and value types are
-// inferred from the function's return type.
+// `insert` overwrites any existing value. `get` returns `Option<&String>`,
+// and `map(|s| s.as_str())` (or `.map(String::as_str)`) turns that into
+// `Option<&str>`. In `rename`, check everything *before* changing
+// anything, so a failed rename leaves the book untouched. `remove` hands
+// back the owned value, ready to re-insert under the new key.
 
 use std::collections::HashMap;
 
-fn fruit_basket() -> HashMap<String, u32> {
-    let mut basket = HashMap::new();
+struct PhoneBook {
+    entries: HashMap<String, String>,
+}
 
-    basket.insert(String::from("banana"), 2);
-    basket.insert(String::from("apple"), 3);
-    basket.insert(String::from("mango"), 1);
+impl PhoneBook {
+    fn new() -> Self {
+        PhoneBook {
+            entries: HashMap::new(),
+        }
+    }
 
-    basket
+    fn add(&mut self, name: &str, number: &str) {
+        self.entries.insert(name.to_string(), number.to_string());
+    }
+
+    fn lookup(&self, name: &str) -> Option<&str> {
+        self.entries.get(name).map(|s| s.as_str())
+    }
+
+    fn rename(&mut self, old: &str, new: &str) -> bool {
+        if self.entries.contains_key(new) {
+            return false;
+        }
+        match self.entries.remove(old) {
+            Some(number) => {
+                self.entries.insert(new.to_string(), number);
+                true
+            }
+            None => false,
+        }
+    }
 }
 
 fn main() {}
@@ -22,12 +48,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn at_least_three_kinds() {
-        assert!(fruit_basket().len() >= 3);
+    fn add_and_lookup() {
+        let mut book = PhoneBook::new();
+        book.add("Ada", "555-0101");
+        book.add("Alan", "555-0199");
+        assert_eq!(book.lookup("Ada"), Some("555-0101"));
+        assert_eq!(book.lookup("Grace"), None);
     }
 
     #[test]
-    fn at_least_five_pieces() {
-        assert!(fruit_basket().values().sum::<u32>() >= 5);
+    fn add_replaces() {
+        let mut book = PhoneBook::new();
+        book.add("Ada", "555-0101");
+        book.add("Ada", "555-0202");
+        assert_eq!(book.lookup("Ada"), Some("555-0202"));
+        assert_eq!(book.entries.len(), 1);
+    }
+
+    #[test]
+    fn renaming() {
+        let mut book = PhoneBook::new();
+        book.add("Ada", "555-0101");
+        book.add("Alan", "555-0199");
+
+        assert!(book.rename("Ada", "Ada Lovelace"));
+        assert_eq!(book.lookup("Ada"), None);
+        assert_eq!(book.lookup("Ada Lovelace"), Some("555-0101"));
+
+        assert!(!book.rename("Nobody", "Someone"));
+        assert!(!book.rename("Alan", "Ada Lovelace"));
+        assert_eq!(book.lookup("Alan"), Some("555-0199"));
+        assert_eq!(book.lookup("Ada Lovelace"), Some("555-0101"));
     }
 }

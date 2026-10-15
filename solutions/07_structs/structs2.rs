@@ -1,25 +1,37 @@
 // structs2.rs - solution
 //
-// Functions in an `impl` block without `self` are "associated functions"
-// (called with `Type::name`). Ones taking `&self` are methods.
+// `open` has no `self`, so it's called as `Account::open(...)`. Reading
+// the balance only needs `&self`; changing it needs `&mut self`, which is
+// why the tests must declare `let mut acc`. Using a `u64` and checking
+// before subtracting means the balance can never go negative.
 
-#[derive(Debug)]
-struct Rectangle {
-    width: u32,
-    height: u32,
+struct Account {
+    owner: String,
+    balance: u64,
 }
 
-impl Rectangle {
-    fn new(width: u32, height: u32) -> Rectangle {
-        Rectangle { width, height }
+impl Account {
+    fn open(owner: &str) -> Self {
+        Account {
+            owner: owner.to_string(),
+            balance: 0,
+        }
     }
 
-    fn area(&self) -> u32 {
-        self.width * self.height
+    fn balance(&self) -> u64 {
+        self.balance
     }
 
-    fn can_hold(&self, other: &Rectangle) -> bool {
-        self.width >= other.width && self.height >= other.height
+    fn deposit(&mut self, amount: u64) {
+        self.balance += amount;
+    }
+
+    fn withdraw(&mut self, amount: u64) -> bool {
+        if amount > self.balance {
+            return false;
+        }
+        self.balance -= amount;
+        true
     }
 }
 
@@ -30,16 +42,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn area() {
-        let r = Rectangle::new(3, 4);
-        assert_eq!(r.area(), 12);
+    fn new_accounts_are_empty() {
+        let acc = Account::open("Ferris");
+        assert_eq!(acc.owner, "Ferris");
+        assert_eq!(acc.balance(), 0);
     }
 
     #[test]
-    fn can_hold() {
-        let big = Rectangle::new(10, 10);
-        let small = Rectangle::new(2, 5);
-        assert!(big.can_hold(&small));
-        assert!(!small.can_hold(&big));
+    fn deposit_then_withdraw() {
+        let mut acc = Account::open("Ferris");
+        acc.deposit(100);
+        acc.deposit(50);
+        assert!(acc.withdraw(30));
+        assert_eq!(acc.balance(), 120);
+    }
+
+    #[test]
+    fn overdraw_is_refused() {
+        let mut acc = Account::open("Ferris");
+        acc.deposit(20);
+        assert!(!acc.withdraw(21));
+        assert_eq!(acc.balance(), 20);
+        assert!(acc.withdraw(20));
+        assert_eq!(acc.balance(), 0);
     }
 }

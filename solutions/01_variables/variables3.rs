@@ -1,11 +1,20 @@
 // variables3.rs - solution
 //
-// Variables are immutable by default. `let mut` opts in to mutation.
+// `total` and `most_expensive` change inside the loop, so they need `mut`.
+// `prices` never changes, so it stays immutable. Making things mutable
+// only where needed tells readers which values to keep an eye on.
 
 fn main() {
-    let mut count = 0;
-    println!("count starts at {count}");
+    let prices = [4, 12, 7, 30, 2];
+    let mut total = 0;
+    let mut most_expensive = 0;
 
-    count = count + 1;
-    println!("count is now {count}");
+    for price in prices {
+        total += price;
+        if price > most_expensive {
+            most_expensive = price;
+        }
+    }
+
+    println!("{} items, total {total}, priciest {most_expensive}", prices.len());
 }

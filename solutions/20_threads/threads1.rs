@@ -1,22 +1,28 @@
 // threads1.rs - solution
 //
-// `JoinHandle::join` blocks until the thread finishes and returns
-// `Result<T, _>`: `Err` if the thread panicked.
+// `thread::scope(|s| ...)` waits for every thread spawned with `s.spawn`
+// before it returns. Since the threads can't outlive the scope, they're
+// allowed to borrow anything that lives longer than it, like `numbers`.
+// `join` returns the closure's result, just as with `thread::spawn`.
+//
+// Before scoped threads existed, you'd have needed `Arc` or copies of the
+// data to do this.
 
 use std::thread;
 
-fn squares_in_threads() -> Vec<u64> {
-    let mut handles = Vec::new();
-    for i in 0..10u64 {
-        let handle = thread::spawn(move || i * i);
-        handles.push(handle);
-    }
+fn parallel_sum(numbers: &[u64], chunk_size: usize) -> u64 {
+    thread::scope(|s| {
+        let mut handles = Vec::new();
+        for chunk in numbers.chunks(chunk_size) {
+            handles.push(s.spawn(|| chunk.iter().sum::<u64>()));
+        }
 
-    let mut results = Vec::new();
-    for handle in handles {
-        results.push(handle.join().unwrap());
-    }
-    results
+        let mut total = 0;
+        for handle in handles {
+            total += handle.join().unwrap();
+        }
+        total
+    })
 }
 
 fn main() {}
@@ -26,7 +32,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn all_results() {
-        assert_eq!(squares_in_threads(), [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]);
+    fn sums_everything() {
+        let numbers: Vec<u64> = (1..=1000).collect();
+        assert_eq!(parallel_sum(&numbers, 100), 500_500);
+    }
+
+    #[test]
+    fn uneven_chunks() {
+        assert_eq!(parallel_sum(&[1, 2, 3, 4, 5], 2), 15);
+    }
+
+    #[test]
+    fn nothing_to_sum() {
+        assert_eq!(parallel_sum(&[], 10), 0);
     }
 }

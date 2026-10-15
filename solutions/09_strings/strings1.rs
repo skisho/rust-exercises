@@ -1,13 +1,31 @@
 // strings1.rs - solution
 //
-// `"blue"` is a `&'static str` (a borrowed string slice), not an owned
-// `String`. Convert with `.to_string()`, `String::from`, or `.to_owned()`.
+// - `shout` wants a `&str`, so borrow the String with `&name`. (A `&String`
+//   converts to `&str` automatically.)
+// - `store` wants an owned `String`, so a literal must be converted with
+//   `.to_string()` or `String::from`. Passing `name` itself is fine: it's
+//   a String, and we don't use it afterwards.
+// - A literal is an immutable `&str` that lives in the program binary;
+//   only a `String` can grow, so `motto` must be one.
 
-fn current_favorite_color() -> String {
-    "blue".to_string()
+fn shout(text: &str) -> String {
+    text.to_uppercase() + "!"
+}
+
+fn store(names: &mut Vec<String>, name: String) {
+    names.push(name);
 }
 
 fn main() {
-    let answer = current_favorite_color();
-    println!("My current favorite color is {answer}");
+    let name = String::from("ferris");
+    println!("{}", shout(&name));
+
+    let mut names = Vec::new();
+    store(&mut names, "corro".to_string());
+    store(&mut names, name);
+
+    let mut motto = String::from("fast");
+    motto.push_str(" and fearless");
+
+    println!("{names:?} {motto}");
 }

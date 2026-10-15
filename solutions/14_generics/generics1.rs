@@ -1,15 +1,26 @@
 // generics1.rs - solution
 //
-// The type parameter `T` must be declared on the struct *and* on the
-// `impl` block (`impl<T> Wrapper<T>`).
+// `impl<A, B> Pair<A, B>` declares the type parameters for the whole
+// block. `swap` returns `Pair<B, A>`: the parameters trade places, so a
+// `Pair<char, bool>` becomes a `Pair<bool, char>`. No trait bounds are
+// needed, because the code only moves the values around.
 
-struct Wrapper<T> {
-    value: T,
+#[derive(Debug, PartialEq)]
+struct Pair<A, B> {
+    first: A,
+    second: B,
 }
 
-impl<T> Wrapper<T> {
-    fn new(value: T) -> Self {
-        Wrapper { value }
+impl<A, B> Pair<A, B> {
+    fn new(first: A, second: B) -> Self {
+        Pair { first, second }
+    }
+
+    fn swap(self) -> Pair<B, A> {
+        Pair {
+            first: self.second,
+            second: self.first,
+        }
     }
 }
 
@@ -20,12 +31,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn store_u32() {
-        assert_eq!(Wrapper::new(42).value, 42);
+    fn mixed_types() {
+        let p = Pair::new("answer", 42);
+        assert_eq!(p.first, "answer");
+        assert_eq!(p.second, 42);
     }
 
     #[test]
-    fn store_str() {
-        assert_eq!(Wrapper::new("Foo").value, "Foo");
+    fn same_types() {
+        let p = Pair::new(1.5, 2.5);
+        assert_eq!(p.first + p.second, 4.0);
+    }
+
+    #[test]
+    fn swapping_changes_the_type() {
+        let p = Pair::new('x', true);
+        let swapped: Pair<bool, char> = p.swap();
+        assert_eq!(swapped, Pair::new(true, 'x'));
     }
 }

@@ -1,13 +1,23 @@
 // if1.rs - solution
 //
-// `if` is an expression in Rust, so its value can be returned directly.
+// The branches are checked top to bottom and the first true one wins, so
+// each condition only needs to state its upper bound. The whole `if` is
+// an expression, and every branch must have the same type (`&str` here).
 
-fn bigger(a: i32, b: i32) -> i32 {
-    if a > b { a } else { b }
+fn describe_temperature(celsius: f64) -> &'static str {
+    if celsius <= 0.0 {
+        "freezing"
+    } else if celsius < 15.0 {
+        "cold"
+    } else if celsius < 25.0 {
+        "mild"
+    } else {
+        "hot"
+    }
 }
 
 fn main() {
-    println!("the bigger of 3 and 7 is {}", bigger(3, 7));
+    println!("18.5°C is {}", describe_temperature(18.5));
 }
 
 #[cfg(test)]
@@ -15,17 +25,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ten_is_bigger_than_eight() {
-        assert_eq!(bigger(10, 8), 10);
+    fn freezing() {
+        assert_eq!(describe_temperature(-12.0), "freezing");
+        assert_eq!(describe_temperature(0.0), "freezing");
     }
 
     #[test]
-    fn fortytwo_is_bigger_than_thirtytwo() {
-        assert_eq!(bigger(32, 42), 42);
+    fn cold() {
+        assert_eq!(describe_temperature(0.1), "cold");
+        assert_eq!(describe_temperature(14.9), "cold");
     }
 
     #[test]
-    fn equal_numbers() {
-        assert_eq!(bigger(5, 5), 5);
+    fn mild() {
+        assert_eq!(describe_temperature(15.0), "mild");
+        assert_eq!(describe_temperature(24.99), "mild");
+    }
+
+    #[test]
+    fn hot() {
+        assert_eq!(describe_temperature(25.0), "hot");
+        assert_eq!(describe_temperature(41.0), "hot");
     }
 }

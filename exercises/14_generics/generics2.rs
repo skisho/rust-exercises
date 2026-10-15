@@ -1,18 +1,32 @@
 // generics2.rs
 //
-// `largest` should work on a slice of anything that can be compared.
-// Make it compile by adding a trait bound to `T`.
+// `range_label` describes the spread of some values: for [4, 9, 1] it
+// returns "1 to 9". It should work for any type that can be *compared*
+// and *displayed*.
+//
+// The body is finished. Make it compile by adding the trait bounds `T`
+// needs. Try writing them in a `where` clause.
 
 // I AM NOT DONE
 
-fn largest<T>(items: &[T]) -> &T {
-    let mut largest = &items[0];
+use std::fmt::Display;
+
+fn range_label<T>(items: &[T]) -> String {
+    let Some(first) = items.first() else {
+        return String::from("nothing");
+    };
+
+    let mut low = first;
+    let mut high = first;
     for item in items {
-        if item > largest {
-            largest = item;
+        if item < low {
+            low = item;
+        }
+        if item > high {
+            high = item;
         }
     }
-    largest
+    format!("{low} to {high}")
 }
 
 fn main() {}
@@ -23,16 +37,22 @@ mod tests {
 
     #[test]
     fn numbers() {
-        assert_eq!(*largest(&[34, 50, 25, 100, 65]), 100);
+        assert_eq!(range_label(&[4, 9, 1]), "1 to 9");
     }
 
     #[test]
-    fn chars() {
-        assert_eq!(*largest(&['y', 'm', 'a', 'q']), 'y');
+    fn floats() {
+        assert_eq!(range_label(&[2.5, -0.5]), "-0.5 to 2.5");
     }
 
     #[test]
-    fn strings() {
-        assert_eq!(*largest(&["apple", "pear", "fig"]), "pear");
+    fn words() {
+        assert_eq!(range_label(&["pear", "apple", "fig"]), "apple to pear");
+    }
+
+    #[test]
+    fn empty() {
+        let none: [u8; 0] = [];
+        assert_eq!(range_label(&none), "nothing");
     }
 }

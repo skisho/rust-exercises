@@ -1,22 +1,37 @@
 // move_semantics4.rs - solution
 //
-// `push` needs `&mut scores`, but `first` is still a live shared borrow
-// (it's used afterwards). A borrow only lasts until its last use, so
-// finishing with `first` before pushing fixes it. This rule isn't
-// pedantry: `push` may reallocate the Vec, leaving `first` dangling.
+// First finish reading: build the plurals in a separate Vec while `words`
+// is only borrowed immutably. That borrow ends with the loop, so then
+// `words` can be borrowed mutably to `extend` it.
+//
+// (Even in languages that allow it, modifying a list while iterating over
+// it is a classic bug. Here this one would also loop forever!)
+
+fn add_plurals(words: &mut Vec<String>) {
+    let mut plurals = Vec::new();
+    for word in words.iter() {
+        plurals.push(format!("{word}s"));
+    }
+    words.extend(plurals);
+}
 
 fn main() {}
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn borrows_do_not_overlap() {
-        let mut scores = vec![10, 20];
+    fn pluralise() {
+        let mut words = vec![String::from("cat"), String::from("dog")];
+        add_plurals(&mut words);
+        assert_eq!(words, ["cat", "dog", "cats", "dogs"]);
+    }
 
-        let first = &scores[0];
-        assert_eq!(*first, 10);
-        scores.push(30);
-
-        assert_eq!(scores, [10, 20, 30]);
+    #[test]
+    fn empty() {
+        let mut words: Vec<String> = Vec::new();
+        add_plurals(&mut words);
+        assert!(words.is_empty());
     }
 }

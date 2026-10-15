@@ -1,20 +1,27 @@
 // threads2.rs
 //
-// Ten threads each add 1 to a shared counter. Make it compile using
-// `Arc` (shared ownership across threads) and `Mutex` (exclusive access).
+// An election: each polling station counts its own ballots on a separate
+// thread, adding its counts into one shared tally.
+//
+// It doesn't compile, because every thread wants to own and modify the
+// same HashMap. Share it with `Arc` (shared ownership across threads)
+// and protect it with `Mutex` (one thread at a time).
 
 // I AM NOT DONE
 
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-fn count_with_threads() -> u32 {
-    let counter = 0;
+fn count_votes(stations: Vec<Vec<&'static str>>) -> HashMap<&'static str, u32> {
+    let tally = HashMap::new();
     let mut handles = Vec::new();
 
-    for _ in 0..10 {
+    for ballots in stations {
         let handle = thread::spawn(move || {
-            counter += 1;
+            for candidate in ballots {
+                *tally.entry(candidate).or_insert(0) += 1;
+            }
         });
         handles.push(handle);
     }
@@ -23,7 +30,7 @@ fn count_with_threads() -> u32 {
         handle.join().unwrap();
     }
 
-    counter
+    tally
 }
 
 fn main() {}
@@ -33,7 +40,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn counts_to_ten() {
-        assert_eq!(count_with_threads(), 10);
+    fn counts_all_stations() {
+        let stations = vec![
+            vec!["crab", "crab", "octopus"],
+            vec!["octopus", "crab"],
+            vec!["squid", "crab", "octopus", "crab"],
+        ];
+        let result = count_votes(stations);
+        assert_eq!(result["crab"], 5);
+        assert_eq!(result["octopus"], 3);
+        assert_eq!(result["squid"], 1);
+        assert_eq!(result.len(), 3);
     }
 }

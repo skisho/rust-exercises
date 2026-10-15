@@ -1,35 +1,33 @@
 // from_into.rs
 //
-// Implement `From<&str>` for `Person`. The input looks like "Mark,20".
-// If anything about the input is wrong (missing comma, empty name,
-// unparseable age, extra fields), return `Person::default()` instead.
+// `From` describes an infallible conversion. Implement:
+//   - `From<Celsius> for Fahrenheit`   (F = C * 9 / 5 + 32)
+//   - `From<(u8, u8, u8)> for Rgb`
+//   - `From<Rgb> for String`, giving lowercase hex like "#ff8000"
+//
+// Once `From<A> for B` exists, you get `Into<B> for A` for free, so
+// `a.into()` works too. The tests use both.
 
 // I AM NOT DONE
 
-#[derive(Debug, PartialEq)]
-struct Person {
-    name: String,
-    age: u8,
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Celsius(f64);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Fahrenheit(f64);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Rgb {
+    r: u8,
+    g: u8,
+    b: u8,
 }
 
-impl Default for Person {
-    fn default() -> Self {
-        Person {
-            name: String::from("John"),
-            age: 30,
-        }
-    }
-}
-
-impl From<&str> for Person {
-    fn from(s: &str) -> Self {
-        todo!()
-    }
-}
+// TODO: the three `From` implementations
 
 fn main() {
-    let p: Person = "Ferris,9".into();
-    println!("{p:?}");
+    let body: Fahrenheit = Celsius(37.0).into();
+    println!("{body:?}");
 }
 
 #[cfg(test)]
@@ -37,27 +35,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn good_input() {
-        let p = Person::from("Mark,20");
-        assert_eq!(
-            p,
-            Person {
-                name: "Mark".to_string(),
-                age: 20
-            }
-        );
+    fn temperatures() {
+        assert_eq!(Fahrenheit::from(Celsius(100.0)), Fahrenheit(212.0));
+        let freezing: Fahrenheit = Celsius(0.0).into();
+        assert_eq!(freezing, Fahrenheit(32.0));
+        assert_eq!(Fahrenheit::from(Celsius(-40.0)), Fahrenheit(-40.0));
     }
 
     #[test]
-    fn into_works_for_free() {
-        let p: Person = "Ada,36".into();
-        assert_eq!(p.name, "Ada");
+    fn colour_from_tuple() {
+        let orange: Rgb = (255, 128, 0).into();
+        assert_eq!(orange, Rgb { r: 255, g: 128, b: 0 });
     }
 
     #[test]
-    fn bad_inputs_give_default() {
-        for bad in ["", "Mark", ",20", "Mark,", "Mark,twenty", "Mark,20,extra"] {
-            assert_eq!(Person::from(bad), Person::default(), "input: {bad:?}");
-        }
+    fn colour_to_hex() {
+        assert_eq!(String::from(Rgb { r: 255, g: 128, b: 0 }), "#ff8000");
+        let teal: String = Rgb::from((0, 128, 128)).into();
+        assert_eq!(teal, "#008080");
     }
 }

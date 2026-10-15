@@ -1,11 +1,15 @@
 // lifetimes1.rs - solution
 //
-// `'a` says: the returned reference is valid for as long as *both*
-// inputs are valid. Lifetimes describe relationships; they don't change
-// how long anything actually lives.
+// `'a` connects the output to `text` only. `tag` gets no named lifetime,
+// which tells the compiler the result never borrows from it, so `tag` is
+// free to be dropped early.
+//
+// Writing `'a` on all three (as in the classic `longest` example) would
+// also compile `strips`, but would break the second test: the compiler
+// would then assume `name` might point into `tag`.
 
-fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
-    if x.len() > y.len() { x } else { y }
+fn strip_tag<'a>(text: &'a str, tag: &str) -> &'a str {
+    text.strip_prefix(tag).unwrap_or(text)
 }
 
 fn main() {}
@@ -15,8 +19,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn picks_longest() {
-        assert_eq!(longest("abcd", "xyz"), "abcd");
-        assert_eq!(longest("a", "xyz"), "xyz");
+    fn strips() {
+        assert_eq!(strip_tag("user:ferris", "user:"), "ferris");
+        assert_eq!(strip_tag("admin:root", "user:"), "admin:root");
+    }
+
+    #[test]
+    fn result_outlives_the_tag() {
+        let text = String::from("user:ferris");
+        let name;
+        {
+            let tag = String::from("user:");
+            name = strip_tag(&text, &tag);
+        }
+        assert_eq!(name, "ferris");
     }
 }

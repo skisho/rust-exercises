@@ -1,16 +1,22 @@
 // vecs2.rs - solution
 //
-// `iter_mut()` yields `&mut i32`; dereference with `*` to change the value
-// behind the reference. `map` + `collect` builds a new collection.
+// Through a `&mut (String, u32)` you can reach the fields directly:
+// `item.1 += amount` auto-dereferences. `retain` keeps only the elements
+// for which the closure returns true. `get` is the non-panicking version
+// of indexing and returns an Option.
 
-fn double_in_place(v: &mut Vec<i32>) {
-    for element in v.iter_mut() {
-        *element *= 2;
+fn restock(stock: &mut Vec<(String, u32)>, amount: u32) {
+    for item in stock.iter_mut() {
+        item.1 += amount;
     }
 }
 
-fn doubled(v: &[i32]) -> Vec<i32> {
-    v.iter().map(|n| n * 2).collect()
+fn remove_sold_out(stock: &mut Vec<(String, u32)>) {
+    stock.retain(|(_, quantity)| *quantity > 0);
+}
+
+fn quantity_at(stock: &[(String, u32)], index: usize) -> Option<u32> {
+    stock.get(index).map(|(_, quantity)| *quantity)
 }
 
 fn main() {}
@@ -19,17 +25,36 @@ fn main() {}
 mod tests {
     use super::*;
 
-    #[test]
-    fn in_place() {
-        let mut v = vec![1, 2, 3, 4];
-        double_in_place(&mut v);
-        assert_eq!(v, [2, 4, 6, 8]);
+    fn shop() -> Vec<(String, u32)> {
+        vec![
+            ("apples".to_string(), 3),
+            ("bread".to_string(), 0),
+            ("cheese".to_string(), 5),
+            ("dates".to_string(), 0),
+        ]
     }
 
     #[test]
-    fn new_vec() {
-        let v = vec![1, 2, 3, 4];
-        assert_eq!(doubled(&v), [2, 4, 6, 8]);
-        assert_eq!(v, [1, 2, 3, 4], "the original must be unchanged");
+    fn restocking() {
+        let mut stock = shop();
+        restock(&mut stock, 10);
+        let quantities: Vec<u32> = stock.iter().map(|(_, q)| *q).collect();
+        assert_eq!(quantities, [13, 10, 15, 10]);
+    }
+
+    #[test]
+    fn clearing_out() {
+        let mut stock = shop();
+        remove_sold_out(&mut stock);
+        let names: Vec<&str> = stock.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, ["apples", "cheese"]);
+    }
+
+    #[test]
+    fn safe_lookup() {
+        let stock = shop();
+        assert_eq!(quantity_at(&stock, 2), Some(5));
+        assert_eq!(quantity_at(&stock, 4), None);
+        assert_eq!(quantity_at(&[], 0), None);
     }
 }

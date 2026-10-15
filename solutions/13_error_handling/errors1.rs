@@ -1,13 +1,19 @@
 // errors1.rs - solution
 //
-// `Result<T, E>` is like `Option<T>`, but the failure case carries a
-// value (`Err(E)`) explaining what went wrong.
+// `Result<T, E>` is like Option, but the failure case carries information.
+// A `String` error is the simplest possible choice; later exercises use
+// dedicated error types. The `&str` inside `Ok` borrows from `name`;
+// lifetime elision ties the two together.
 
-fn generate_nametag_text(name: String) -> Result<String, String> {
+fn check_username(name: &str) -> Result<&str, String> {
     if name.is_empty() {
-        Err("Empty names aren't allowed".to_string())
+        Err("username can't be empty".to_string())
+    } else if name.chars().count() > 12 {
+        Err("username is too long".to_string())
+    } else if !name.chars().all(|c| c.is_alphanumeric()) {
+        Err("username may only contain letters and digits".to_string())
     } else {
-        Ok(format!("Hi! My name is {name}"))
+        Ok(name)
     }
 }
 
@@ -18,18 +24,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn generates_nametag_text_for_a_nonempty_name() {
+    fn accepted() {
+        assert_eq!(check_username("ferris42"), Ok("ferris42"));
+    }
+
+    #[test]
+    fn empty() {
+        assert_eq!(check_username(""), Err("username can't be empty".to_string()));
+    }
+
+    #[test]
+    fn too_long() {
         assert_eq!(
-            generate_nametag_text("Beyoncé".to_string()),
-            Ok("Hi! My name is Beyoncé".to_string())
+            check_username("averyverylongname"),
+            Err("username is too long".to_string())
         );
     }
 
     #[test]
-    fn explains_why_generating_nametag_text_fails() {
+    fn bad_characters() {
         assert_eq!(
-            generate_nametag_text(String::new()),
-            Err("Empty names aren't allowed".to_string())
+            check_username("ferris crab"),
+            Err("username may only contain letters and digits".to_string())
         );
     }
 }

@@ -1,11 +1,13 @@
 // intro2.rs - solution
 //
-// `println!` checks at compile time that every `{}` placeholder has a
-// matching argument. You can also name variables inline: `{name}`.
+// `{}` uses the `Display` trait, which is for user-facing output, and
+// tuples and arrays don't implement it. `{:?}` uses `Debug` instead, which
+// almost every standard type implements. (`{:#?}` pretty-prints it.)
 
 fn main() {
-    let name = "Ferris";
-    let species = "crab";
-    println!("Hello, {}! You are a {}.", name, species);
-    println!("Inline form works too: {name} the {species}.");
+    let position = (3, -7);
+    let path = ["north", "north", "east"];
+
+    println!("The robot is at {:?}", position);
+    println!("It walked {:?}", path);
 }

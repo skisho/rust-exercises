@@ -1,15 +1,29 @@
 // structs1.rs
 //
-// Define the `Color` struct and the `Point` tuple struct so the tests
-// compile and pass.
+// 1. Define the `Book` struct so the tests compile. Look at how the tests
+//    use it to work out the field names and types.
+// 2. Implement `new_book` using the *field init shorthand*: when a
+//    variable has the same name as a field, you can write it just once.
+// 3. Implement `second_edition`: a copy of the book with `edition` set
+//    to 2 and every other field the same. Use *struct update syntax*
+//    (`..`) so you don't have to list the other fields.
 
 // I AM NOT DONE
 
-struct Color {
-    // TODO: add fields
+#[derive(Debug, Clone, PartialEq)]
+struct Book {
+    // TODO
 }
 
-struct Point(/* TODO */);
+fn new_book(title: &str, author: &str, pages: u32) -> Book {
+    let title = title.to_string();
+    let author = author.to_string();
+    todo!()
+}
+
+fn second_edition(book: &Book) -> Book {
+    todo!()
+}
 
 fn main() {}
 
@@ -18,21 +32,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn classic_struct() {
-        let green = Color {
-            red: 0,
-            green: 255,
-            blue: 0,
-        };
-        assert_eq!(green.red, 0);
-        assert_eq!(green.green, 255);
-        assert_eq!(green.blue, 0);
+    fn create() {
+        let b = new_book("Dune", "Frank Herbert", 412);
+        assert_eq!(b.title, "Dune");
+        assert_eq!(b.author, "Frank Herbert");
+        assert_eq!(b.pages, 412);
+        assert_eq!(b.edition, 1);
     }
 
     #[test]
-    fn tuple_struct() {
-        let p = Point(1.5, -2.0);
-        assert_eq!(p.0, 1.5);
-        assert_eq!(p.1, -2.0);
+    fn update() {
+        let first = new_book("Dune", "Frank Herbert", 412);
+        let second = second_edition(&first);
+        assert_eq!(second.edition, 2);
+        assert_eq!(second.title, first.title);
+        assert_eq!(second.pages, 412);
+        assert_eq!(first.edition, 1, "the first edition must be unchanged");
     }
 }

@@ -1,20 +1,24 @@
 // rc1.rs
 //
-// Several planets share the same sun. `Rc` (reference counted) lets
-// multiple owners share one value. Replace the TODOs so the reference
-// count assertions pass.
+// Two playlists can contain the very same song. Instead of copying the
+// song's data into each playlist, they share it with `Rc` ("reference
+// counted"): every `Rc::clone` adds an owner, and the song is freed only
+// when the last owner is gone.
+//
+// Replace each `???` and `todo!()` so the test passes. Don't clone the
+// `Song` itself; clone the `Rc`.
 
 // I AM NOT DONE
 
 use std::rc::Rc;
 
 #[derive(Debug)]
-struct Sun;
+struct Song {
+    title: String,
+}
 
-#[derive(Debug)]
-struct Planet {
-    name: &'static str,
-    sun: Rc<Sun>,
+struct Playlist {
+    songs: Vec<Rc<Song>>,
 }
 
 fn main() {}
@@ -24,33 +28,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn shared_sun() {
-        let sun = Rc::new(Sun);
-        assert_eq!(Rc::strong_count(&sun), 1);
+    fn shared_songs() {
+        let anthem = Rc::new(Song {
+            title: String::from("Crab Rave"),
+        });
+        let ballad = Rc::new(Song {
+            title: String::from("Ferris' Lament"),
+        });
 
-        let mercury = Planet {
-            name: "Mercury",
-            sun: Rc::clone(&sun),
-        };
-        assert_eq!(Rc::strong_count(&sun), 2);
+        let mut party = Playlist { songs: Vec::new() };
+        let mut chill = Playlist { songs: Vec::new() };
 
-        // TODO: create `venus` and `earth`, both sharing `sun`.
-        let venus = Planet {
-            name: "Venus",
-            sun: todo!(),
-        };
-        let earth = Planet {
-            name: "Earth",
-            sun: todo!(),
-        };
-        assert_eq!(Rc::strong_count(&sun), 4);
-        println!("{} {} {}", mercury.name, venus.name, earth.name);
+        party.songs.push(Rc::clone(&anthem));
+        party.songs.push(Rc::clone(&ballad));
+        // TODO: add `anthem` to `chill` as well.
+        todo!();
 
-        // TODO: get rid of `earth` so the count drops back down.
-        assert_eq!(Rc::strong_count(&sun), 3);
+        assert_eq!(Rc::strong_count(&anthem), ???);
+        assert_eq!(Rc::strong_count(&ballad), ???);
 
-        drop(mercury);
-        drop(venus);
-        assert_eq!(Rc::strong_count(&sun), 1);
+        // Both playlists point at the *same* Song, not two copies.
+        assert!(Rc::ptr_eq(&party.songs[0], &chill.songs[0]));
+        assert_eq!(chill.songs[0].title, "Crab Rave");
+
+        drop(party);
+        assert_eq!(Rc::strong_count(&anthem), ???);
+        assert_eq!(Rc::strong_count(&ballad), ???);
     }
 }
