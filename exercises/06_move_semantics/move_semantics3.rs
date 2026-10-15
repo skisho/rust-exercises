@@ -1,12 +1,24 @@
 // move_semantics3.rs
 //
-// `add_exclamation` should modify the caller's String without taking
-// ownership of it. Fix the function signature and the call site.
+// `record` should add an entry to the caller's log. But it takes the log
+// by value, so the loop moves it on the first iteration and the compiler
+// complains on the second.
+//
+// Change `record`'s signature and the call inside the loop. Don't change
+// anything else.
 
 // I AM NOT DONE
 
-fn add_exclamation(s: String) {
-    s.push('!');
+fn record(mut log: Vec<String>, event: &str) {
+    log.push(format!("[event] {event}"));
+}
+
+fn run_events(events: &[&str]) -> Vec<String> {
+    let log = Vec::new();
+    for event in events {
+        record(log, event);
+    }
+    log
 }
 
 fn main() {}
@@ -16,10 +28,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn modifies_in_place() {
-        let mut greeting = String::from("hello");
-        add_exclamation(greeting);
-        add_exclamation(greeting);
-        assert_eq!(greeting, "hello!!");
+    fn records_every_event() {
+        let log = run_events(&["boot", "login", "logout"]);
+        assert_eq!(log, ["[event] boot", "[event] login", "[event] logout"]);
+    }
+
+    #[test]
+    fn nothing_happened() {
+        assert!(run_events(&[]).is_empty());
     }
 }

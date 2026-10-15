@@ -1,17 +1,22 @@
 // rc1.rs - solution
 //
-// `Rc::clone` doesn't copy the Sun: it bumps a counter and hands out
-// another pointer to the same value. Dropping an owner decrements it.
+// `anthem` has three owners: the original `Rc`, `party` and `chill`.
+// `ballad` has two. Dropping `party` drops its Vec, which drops each `Rc`
+// in it, so each count falls by one. The songs themselves are freed only
+// at the end of the test, when their counts reach zero.
+//
+// `Rc::clone(&x)` (rather than `x.clone()`) is the usual style: it makes
+// clear that only a pointer is copied, not the data.
 
 use std::rc::Rc;
 
 #[derive(Debug)]
-struct Sun;
+struct Song {
+    title: String,
+}
 
-#[derive(Debug)]
-struct Planet {
-    name: &'static str,
-    sun: Rc<Sun>,
+struct Playlist {
+    songs: Vec<Rc<Song>>,
 }
 
 fn main() {}
@@ -21,23 +26,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn shared_sun() {
-        let sun = Rc::new(Sun);
-        assert_eq!(Rc::strong_count(&sun), 1);
+    fn shared_songs() {
+        let anthem = Rc::new(Song {
+            title: String::from("Crab Rave"),
+        });
+        let ballad = Rc::new(Song {
+            title: String::from("Ferris' Lament"),
+        });
 
-        let mercury = Planet { name: "Mercury", sun: Rc::clone(&sun) };
-        assert_eq!(Rc::strong_count(&sun), 2);
+        let mut party = Playlist { songs: Vec::new() };
+        let mut chill = Playlist { songs: Vec::new() };
 
-        let venus = Planet { name: "Venus", sun: Rc::clone(&sun) };
-        let earth = Planet { name: "Earth", sun: Rc::clone(&sun) };
-        assert_eq!(Rc::strong_count(&sun), 4);
-        println!("{} {} {}", mercury.name, venus.name, earth.name);
+        party.songs.push(Rc::clone(&anthem));
+        party.songs.push(Rc::clone(&ballad));
+        chill.songs.push(Rc::clone(&anthem));
 
-        drop(earth);
-        assert_eq!(Rc::strong_count(&sun), 3);
+        assert_eq!(Rc::strong_count(&anthem), 3);
+        assert_eq!(Rc::strong_count(&ballad), 2);
 
-        drop(mercury);
-        drop(venus);
-        assert_eq!(Rc::strong_count(&sun), 1);
+        assert!(Rc::ptr_eq(&party.songs[0], &chill.songs[0]));
+        assert_eq!(chill.songs[0].title, "Crab Rave");
+
+        drop(party);
+        assert_eq!(Rc::strong_count(&anthem), 2);
+        assert_eq!(Rc::strong_count(&ballad), 1);
     }
 }

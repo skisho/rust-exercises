@@ -1,13 +1,29 @@
 // lifetimes3.rs - solution
 //
-// We know `result` points into `string1`, but the compiler only knows
-// what the signature says: the output lives as long as the *shorter* of
-// the two inputs. So every input must outlive every use of `result`.
-// Here `string2` moves to the outer scope. (Moving the assertion into
-// the inner block would also work.)
+// `'static` means "valid for the entire program". Every string literal is
+// a `&'static str`. Since `reason` only ever holds literals, saying so
+// keeps `HttpStatus` free of lifetime parameters, so it can be stored
+// anywhere, for as long as you like.
+//
+// Use `'static` when it's actually true. A struct that borrows from
+// runtime data (like `Words` in lifetimes2) needs a real lifetime
+// parameter instead.
 
-fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
-    if x.len() > y.len() { x } else { y }
+#[derive(Debug, PartialEq)]
+struct HttpStatus {
+    code: u16,
+    reason: &'static str,
+}
+
+fn status(code: u16) -> HttpStatus {
+    let reason = match code {
+        200 => "OK",
+        404 => "Not Found",
+        418 => "I'm a teapot",
+        500 => "Internal Server Error",
+        _ => "Unknown",
+    };
+    HttpStatus { code, reason }
 }
 
 fn main() {}
@@ -17,10 +33,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn result_outlives_inputs() {
-        let string1 = String::from("long string is long");
-        let string2 = String::from("xyz");
-        let result = longest(&string1, &string2);
-        assert_eq!(result, "long string is long");
+    fn known_codes() {
+        assert_eq!(status(404).reason, "Not Found");
+        assert_eq!(status(418).reason, "I'm a teapot");
+    }
+
+    #[test]
+    fn unknown_code() {
+        assert_eq!(status(299), HttpStatus { code: 299, reason: "Unknown" });
+    }
+
+    #[test]
+    fn keep_forever() {
+        let mut log: Vec<HttpStatus> = Vec::new();
+        for code in [200, 500] {
+            log.push(status(code));
+        }
+        assert_eq!(log[1].reason, "Internal Server Error");
     }
 }

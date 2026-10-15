@@ -1,12 +1,27 @@
 // move_semantics2.rs - solution
 //
-// Passing `v` by value moves it into `fill_vec`, so it can't be used
-// afterwards. Passing a clone keeps the original around. (Another option
-// is to change `fill_vec` to take `&[i32]` and build a new Vec inside.)
+// Types that implement `Copy` are duplicated bit-for-bit when passed by
+// value, so the original stays usable. `Copy` requires `Clone`, and you
+// can only derive it when every field is `Copy` too.
+//
+// `Label` can't be `Copy`: it contains a `String`, which owns heap memory.
+// Copying it bit-for-bit would leave two owners of one allocation, and
+// both would try to free it. For types like that, you call `.clone()`
+// explicitly so the cost is visible.
 
-fn fill_vec(mut vec: Vec<i32>) -> Vec<i32> {
-    vec.push(88);
-    vec
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+#[allow(dead_code)]
+struct Label {
+    text: String,
+}
+
+fn distance_from_origin(p: Point) -> f64 {
+    (p.x * p.x + p.y * p.y).sqrt()
 }
 
 fn main() {}
@@ -16,11 +31,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn original_is_kept() {
-        let v = vec![22, 44, 66];
-        let filled = fill_vec(v.clone());
-
-        assert_eq!(v, [22, 44, 66]);
-        assert_eq!(filled, [22, 44, 66, 88]);
+    fn use_after_passing() {
+        let p = Point { x: 3.0, y: 4.0 };
+        assert_eq!(distance_from_origin(p), 5.0);
+        assert_eq!(distance_from_origin(p), 5.0);
+        assert_eq!(p, Point { x: 3.0, y: 4.0 });
     }
 }

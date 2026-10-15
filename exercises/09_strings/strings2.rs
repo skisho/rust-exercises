@@ -1,23 +1,25 @@
 // strings2.rs
 //
-// Implement each function using methods on `str` and `String`.
-// The standard library docs for `str` are your friend here.
+// Implement each function. The docs for `str` and `char` are your
+// friends here, especially `chars`, `split_whitespace`, `to_uppercase`,
+// `is_alphanumeric` and `repeat`.
 
 // I AM NOT DONE
 
-fn trim_me(input: &str) -> &str {
-    // TODO: remove whitespace from both ends
-    input
+// "Grace Brewster Hopper" -> "G.B.H."
+fn initials(full_name: &str) -> String {
+    todo!()
 }
 
-fn compose_me(input: &str) -> String {
-    // TODO: add " world!" to the end of the input
-    input.to_string()
+// Ignore case and anything that isn't a letter or digit:
+// "Never odd or even" and "A man, a plan, a canal: Panama!" are palindromes.
+fn is_palindrome(text: &str) -> bool {
+    todo!()
 }
 
-fn replace_me(input: &str) -> String {
-    // TODO: replace every "cars" with "balloons"
-    input.to_string()
+// Replace every occurrence of `word` with as many '*' as it has letters.
+fn censor(text: &str, word: &str) -> String {
+    todo!()
 }
 
 fn main() {}
@@ -27,26 +29,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn trim() {
-        assert_eq!(trim_me("  Hello!  "), "Hello!");
-        assert_eq!(trim_me("\tWhat's up!\n"), "What's up!");
+    fn make_initials() {
+        assert_eq!(initials("Grace Brewster Hopper"), "G.B.H.");
+        assert_eq!(initials("  ada   lovelace "), "A.L.");
+        assert_eq!(initials(""), "");
     }
 
     #[test]
-    fn compose() {
-        assert_eq!(compose_me("Hello"), "Hello world!");
-        assert_eq!(compose_me("Goodbye"), "Goodbye world!");
+    fn palindromes() {
+        assert!(is_palindrome("racecar"));
+        assert!(is_palindrome("Never odd or even"));
+        assert!(is_palindrome("A man, a plan, a canal: Panama!"));
+        assert!(!is_palindrome("Rustacean"));
     }
 
     #[test]
-    fn replace() {
-        assert_eq!(
-            replace_me("I think cars are cool"),
-            "I think balloons are cool"
-        );
-        assert_eq!(
-            replace_me("I love to look at cars, cars, cars"),
-            "I love to look at balloons, balloons, balloons"
-        );
+    fn censoring() {
+        assert_eq!(censor("what the heck", "heck"), "what the ****");
+        assert_eq!(censor("bug bug bug", "bug"), "*** *** ***");
+        assert_eq!(censor("all clean", "dirt"), "all clean");
     }
 }

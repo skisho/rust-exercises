@@ -1,11 +1,17 @@
 // move_semantics1.rs - solution
 //
-// The function owns `vec` (it was moved in), but parameters are still
-// immutable unless declared `mut`.
+// Passing a `Vec<String>` by value moves it into the function, which drops
+// it at the end. Taking a borrowed slice, `&[String]`, lets the caller
+// keep ownership. `&names` converts automatically from `&Vec<String>` to
+// `&[String]`. A slice parameter is preferred over `&Vec<String>`, because
+// it also accepts arrays and parts of other Vecs.
 
-fn fill_vec(mut vec: Vec<i32>) -> Vec<i32> {
-    vec.push(88);
-    vec
+fn total_letters(words: &[String]) -> usize {
+    let mut total = 0;
+    for word in words.iter() {
+        total += word.len();
+    }
+    total
 }
 
 fn main() {}
@@ -15,9 +21,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn fills() {
-        let v = vec![22, 44, 66];
-        let filled = fill_vec(v);
-        assert_eq!(filled, [22, 44, 66, 88]);
+    fn count_twice() {
+        let mut names = vec![String::from("Ada"), String::from("Grace")];
+        assert_eq!(total_letters(&names), 8);
+
+        names.push(String::from("Alan"));
+        assert_eq!(total_letters(&names), 12);
     }
 }

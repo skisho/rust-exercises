@@ -1,14 +1,35 @@
 // macros1.rs - solution
 //
-// Macro calls need a `!`. Unlike functions, `macro_rules!` macros are
-// only visible *after* their definition in the file.
+// `$name:expr` matches any expression and binds it to `$name`. The
+// expansion can use it like a variable. Macros are expanded in source
+// order, so the definition has to come first in the file (or be imported
+// with `#[macro_use]` or `use`).
 
-macro_rules! my_macro {
+macro_rules! greet {
     () => {
-        println!("Check out my macro!");
+        String::from("Hello, world!")
+    };
+    ($name:expr) => {
+        format!("Hello, {}!", $name)
     };
 }
 
 fn main() {
-    my_macro!();
+    println!("{}", greet!());
+    println!("{}", greet!("Ferris"));
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn no_arguments() {
+        assert_eq!(greet!(), "Hello, world!");
+    }
+
+    #[test]
+    fn with_a_name() {
+        assert_eq!(greet!("Ferris"), "Hello, Ferris!");
+        let crew = "Corro";
+        assert_eq!(greet!(crew), "Hello, Corro!");
+    }
 }

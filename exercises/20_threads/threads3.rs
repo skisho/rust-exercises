@@ -1,30 +1,44 @@
 // threads3.rs
 //
-// Instead of sharing memory, threads can communicate by sending messages
-// through a channel. Three workers each send three numbers; the main
-// thread collects them all.
+// A two-stage pipeline connected by channels:
 //
-// Make it compile. Then make sure it *finishes*: `rx.iter()` keeps
-// waiting until every sender has been dropped. (If the test seems to
-// hang, press Ctrl+C and think about which senders are still alive.)
+//     producer --(raw numbers)--> squarer --(squares)--> main thread
+//
+// The producer sends 1 to 5, the squarer receives each number and sends
+// on its square, and the main thread collects the results.
+//
+// 1. Make it compile. The closures need to *own* the channel ends they
+//    use.
+// 2. Make sure it *finishes*. A `for` loop over a receiver ends only when
+//    every sender for that channel has been dropped. If the test hangs,
+//    press Ctrl+C and think about who is still holding a sender.
 
 // I AM NOT DONE
 
 use std::sync::mpsc;
 use std::thread;
 
-fn collect_from_workers() -> Vec<u32> {
-    let (tx, rx) = mpsc::channel();
+fn squares_pipeline() -> Vec<u64> {
+    let (raw_tx, raw_rx) = mpsc::channel();
+    let (squared_tx, squared_rx) = mpsc::channel();
 
-    for id in 0..3 {
-        thread::spawn(move || {
-            for i in 0..3 {
-                tx.send(id * 10 + i).unwrap();
-            }
-        });
-    }
+    thread::spawn(|| {
+        for n in 1..=5u64 {
+            raw_tx.send(n).unwrap();
+        }
+    });
 
-    let mut results: Vec<u32> = rx.iter().collect();
+    thread::spawn(|| {
+        for n in raw_rx {
+            squared_tx.send(n * n).unwrap();
+        }
+    });
+
+    // The main thread keeps a sender too, to report a final marker.
+    let report_tx = squared_tx.clone();
+    report_tx.send(0).unwrap();
+
+    let mut results: Vec<u64> = squared_rx.iter().collect();
     results.sort();
     results
 }
@@ -36,7 +50,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gets_everything() {
-        assert_eq!(collect_from_workers(), [0, 1, 2, 10, 11, 12, 20, 21, 22]);
+    fn squares_one_to_five() {
+        assert_eq!(squares_pipeline(), [0, 1, 4, 9, 16, 25]);
     }
 }

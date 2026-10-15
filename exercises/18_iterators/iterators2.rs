@@ -1,26 +1,30 @@
 // iterators2.rs
 //
-// Implement `capitalize_first`, then use it with iterators to implement
-// the other two functions.
+// `collect` can build many different types. What it builds depends on the
+// type you ask for. Implement each function as a single iterator chain
+// ending in `collect` (plus a little extra where noted).
 
 // I AM NOT DONE
 
-// "hello" -> "Hello"
-fn capitalize_first(input: &str) -> String {
-    let mut chars = input.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(first) => ???,
-    }
-}
+use std::collections::HashMap;
+use std::num::ParseIntError;
 
-// ["hello", "world"] -> ["Hello", "World"]
-fn capitalize_words_vector(words: &[&str]) -> Vec<String> {
+// "one two three" -> "three two one"
+// Collect the words into a Vec, then `join` them.
+fn reverse_words(sentence: &str) -> String {
     todo!()
 }
 
-// ["hello", " ", "world"] -> "Hello World"
-fn capitalize_words_string(words: &[&str]) -> String {
+// ["apple", "fig"] -> {"apple": 5, "fig": 3}
+// An iterator of (key, value) tuples collects into a HashMap.
+fn lengths<'a>(words: &[&'a str]) -> HashMap<&'a str, usize> {
+    todo!()
+}
+
+// ["1", "2", "3"] -> Ok([1, 2, 3]), but ["1", "x"] -> Err(...)
+// An iterator of Results can collect into a Result of a Vec. It stops at
+// the first error.
+fn parse_all(items: &[&str]) -> Result<Vec<i32>, ParseIntError> {
     todo!()
 }
 
@@ -31,24 +35,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn success() {
-        assert_eq!(capitalize_first("hello"), "Hello");
+    fn reversing() {
+        assert_eq!(reverse_words("one two three"), "three two one");
+        assert_eq!(reverse_words("solo"), "solo");
     }
 
     #[test]
-    fn empty() {
-        assert_eq!(capitalize_first(""), "");
+    fn word_lengths() {
+        let map = lengths(&["apple", "fig", "kiwi"]);
+        assert_eq!(map.len(), 3);
+        assert_eq!(map["apple"], 5);
+        assert_eq!(map["fig"], 3);
     }
 
     #[test]
-    fn iterate_string_vec() {
-        let words = vec!["hello", "world"];
-        assert_eq!(capitalize_words_vector(&words), ["Hello", "World"]);
+    fn all_good() {
+        assert_eq!(parse_all(&["1", "-2", "30"]), Ok(vec![1, -2, 30]));
     }
 
     #[test]
-    fn iterate_into_string() {
-        let words = vec!["hello", " ", "world"];
-        assert_eq!(capitalize_words_string(&words), "Hello World");
+    fn one_bad() {
+        let err = parse_all(&["1", "x", "3"]).unwrap_err();
+        assert_eq!(err.to_string(), "invalid digit found in string");
     }
 }

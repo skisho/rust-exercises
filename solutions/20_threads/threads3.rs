@@ -1,27 +1,40 @@
 // threads3.rs - solution
 //
-// Each worker needs its own sender, so clone `tx` before moving it into
-// the closure. The receiver's iterator only ends once *all* senders are
-// gone, including the original `tx`, so drop it once the workers have
-// their clones.
+// `move` makes each closure take ownership of the channel ends it uses.
+//
+// The hang came from `report_tx` (and the order of the clone): the main
+// thread still held a sender, so the channel never closed and `iter()`
+// waited forever. The clone must also happen *before* `squared_tx` moves
+// into the squarer. Dropping `report_tx` once it's done closes our side.
+// The producer's and squarer's senders are dropped when their threads
+// end, so the chain shuts down in order: producer, squarer, main.
 
 use std::sync::mpsc;
 use std::thread;
 
-fn collect_from_workers() -> Vec<u32> {
-    let (tx, rx) = mpsc::channel();
+fn squares_pipeline() -> Vec<u64> {
+    let (raw_tx, raw_rx) = mpsc::channel();
+    let (squared_tx, squared_rx) = mpsc::channel();
 
-    for id in 0..3 {
-        let tx = tx.clone();
-        thread::spawn(move || {
-            for i in 0..3 {
-                tx.send(id * 10 + i).unwrap();
-            }
-        });
-    }
-    drop(tx);
+    // The main thread keeps a sender too, to report a final marker.
+    let report_tx = squared_tx.clone();
 
-    let mut results: Vec<u32> = rx.iter().collect();
+    thread::spawn(move || {
+        for n in 1..=5u64 {
+            raw_tx.send(n).unwrap();
+        }
+    });
+
+    thread::spawn(move || {
+        for n in raw_rx {
+            squared_tx.send(n * n).unwrap();
+        }
+    });
+
+    report_tx.send(0).unwrap();
+    drop(report_tx);
+
+    let mut results: Vec<u64> = squared_rx.iter().collect();
     results.sort();
     results
 }
@@ -33,7 +46,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gets_everything() {
-        assert_eq!(collect_from_workers(), [0, 1, 2, 10, 11, 12, 20, 21, 22]);
+    fn squares_one_to_five() {
+        assert_eq!(squares_pipeline(), [0, 1, 4, 9, 16, 25]);
     }
 }

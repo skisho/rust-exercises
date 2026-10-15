@@ -1,12 +1,17 @@
 // lifetimes1.rs
 //
-// The compiler can't tell whether the returned reference borrows from
-// `x` or from `y`. Add lifetime annotations so this compiles.
+// `strip_tag` removes a prefix like "user:" from some text and returns
+// the rest. The result always points into `text`, never into `tag`.
+//
+// With two reference parameters, the compiler can't guess which one the
+// result borrows from, so you have to say. Add lifetime annotations, and
+// get them *exactly* right: the second test keeps the result after `tag`
+// has been dropped.
 
 // I AM NOT DONE
 
-fn longest(x: &str, y: &str) -> &str {
-    if x.len() > y.len() { x } else { y }
+fn strip_tag(text: &str, tag: &str) -> &str {
+    text.strip_prefix(tag).unwrap_or(text)
 }
 
 fn main() {}
@@ -16,8 +21,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn picks_longest() {
-        assert_eq!(longest("abcd", "xyz"), "abcd");
-        assert_eq!(longest("a", "xyz"), "xyz");
+    fn strips() {
+        assert_eq!(strip_tag("user:ferris", "user:"), "ferris");
+        assert_eq!(strip_tag("admin:root", "user:"), "admin:root");
+    }
+
+    #[test]
+    fn result_outlives_the_tag() {
+        let text = String::from("user:ferris");
+        let name;
+        {
+            let tag = String::from("user:");
+            name = strip_tag(&text, &tag);
+        }
+        assert_eq!(name, "ferris");
     }
 }

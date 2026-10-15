@@ -1,20 +1,24 @@
 // structs2.rs
 //
-// Add an `impl` block for `Rectangle` with:
-//   - an associated function `new(width, height) -> Rectangle`
-//   - a method `area(&self) -> u32`
-//   - a method `can_hold(&self, other: &Rectangle) -> bool` that returns
-//     true if `other` fits entirely inside `self`
+// Add an `impl` block for `Account` with:
+//   - `open(owner)`: an associated function creating an account with a
+//     balance of 0
+//   - `balance(&self) -> u64`
+//   - `deposit(&mut self, amount)`
+//   - `withdraw(&mut self, amount) -> bool`: takes the money out and
+//     returns true, or returns false and changes nothing if there isn't
+//     enough
+//
+// Think about which methods need `&self` and which need `&mut self`.
 
 // I AM NOT DONE
 
-#[derive(Debug)]
-struct Rectangle {
-    width: u32,
-    height: u32,
+struct Account {
+    owner: String,
+    balance: u64,
 }
 
-// TODO: impl Rectangle { ... }
+// TODO: impl Account { ... }
 
 fn main() {}
 
@@ -23,16 +27,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn area() {
-        let r = Rectangle::new(3, 4);
-        assert_eq!(r.area(), 12);
+    fn new_accounts_are_empty() {
+        let acc = Account::open("Ferris");
+        assert_eq!(acc.owner, "Ferris");
+        assert_eq!(acc.balance(), 0);
     }
 
     #[test]
-    fn can_hold() {
-        let big = Rectangle::new(10, 10);
-        let small = Rectangle::new(2, 5);
-        assert!(big.can_hold(&small));
-        assert!(!small.can_hold(&big));
+    fn deposit_then_withdraw() {
+        let mut acc = Account::open("Ferris");
+        acc.deposit(100);
+        acc.deposit(50);
+        assert!(acc.withdraw(30));
+        assert_eq!(acc.balance(), 120);
+    }
+
+    #[test]
+    fn overdraw_is_refused() {
+        let mut acc = Account::open("Ferris");
+        acc.deposit(20);
+        assert!(!acc.withdraw(21));
+        assert_eq!(acc.balance(), 20);
+        assert!(acc.withdraw(20));
+        assert_eq!(acc.balance(), 0);
     }
 }

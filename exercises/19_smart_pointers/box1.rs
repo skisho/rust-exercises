@@ -1,31 +1,50 @@
 // box1.rs
 //
-// A cons list is a classic recursive data structure: each item holds a
-// value and the rest of the list. As written, `List` has infinite size,
-// so it doesn't compile. Use `Box` to fix it, then implement
-// `create_list`.
+// `Expr` is a tiny arithmetic expression tree: `(2 + 3) * 4` is a `Mul`
+// whose left side is an `Add`. But an enum that contains itself directly
+// would be infinitely large, so this doesn't compile.
+//
+// 1. Fix `Expr` using `Box`, which stores a value on the heap and has a
+//    fixed size itself.
+// 2. Implement `eval`.
+// 3. Build the expression in `example` (the helper functions make it
+//    easier to read).
 
 // I AM NOT DONE
 
-#[derive(PartialEq, Debug)]
-enum List {
-    Cons(i32, List),
-    Nil,
+#[derive(Debug)]
+enum Expr {
+    Num(i64),
+    Add(Expr, Expr),
+    Mul(Expr, Expr),
+    Neg(Expr),
 }
 
-use List::{Cons, Nil};
+use Expr::{Add, Mul, Neg, Num};
 
-fn create_empty_list() -> List {
-    Nil
+fn add(a: Expr, b: Expr) -> Expr {
+    Add(Box::new(a), Box::new(b))
 }
 
-// Should build the list 1 -> 2 -> 3 -> Nil
-fn create_list() -> List {
+fn mul(a: Expr, b: Expr) -> Expr {
+    Mul(Box::new(a), Box::new(b))
+}
+
+fn neg(a: Expr) -> Expr {
+    Neg(Box::new(a))
+}
+
+fn eval(expr: &Expr) -> i64 {
+    todo!()
+}
+
+// Should build: (2 + 3) * -(4)
+fn example() -> Expr {
     todo!()
 }
 
 fn main() {
-    println!("{:?}", create_list());
+    println!("{:?} = {}", example(), eval(&example()));
 }
 
 #[cfg(test)]
@@ -33,16 +52,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn empty_list() {
-        assert_eq!(create_empty_list(), Nil);
+    fn single_number() {
+        assert_eq!(eval(&Num(7)), 7);
     }
 
     #[test]
-    fn non_empty_list() {
-        let list = create_list();
-        assert_ne!(list, Nil);
-        if let Cons(first, _) = list {
-            assert_eq!(first, 1);
-        }
+    fn nested() {
+        // 1 + (2 * 3)
+        let e = add(Num(1), mul(Num(2), Num(3)));
+        assert_eq!(eval(&e), 7);
+    }
+
+    #[test]
+    fn the_example() {
+        assert_eq!(eval(&example()), -20);
     }
 }

@@ -1,15 +1,27 @@
 // functions3.rs - solution
 //
-// 1. A function that returns a value must declare its return type: `-> i32`.
-// 2. The last expression in a block is its value, but only if it has no
-//    trailing semicolon. `n * n;` is a statement that evaluates to `()`.
+// `fn(i32) -> i32` is a function pointer type. Any function with a
+// matching signature can be passed by name, with no parentheses. (Later
+// you'll meet closures, which are accepted with `impl Fn(i32) -> i32`.)
 
-fn square(n: i32) -> i32 {
-    n * n
+fn add_three(n: i32) -> i32 {
+    n + 3
+}
+
+fn double(n: i32) -> i32 {
+    n * 2
+}
+
+fn negate(n: i32) -> i32 {
+    -n
+}
+
+fn apply_twice(f: fn(i32) -> i32, start: i32) -> i32 {
+    f(f(start))
 }
 
 fn main() {
-    println!("4 squared is {}", square(4));
+    println!("{}", apply_twice(double, 5));
 }
 
 #[cfg(test)]
@@ -17,8 +29,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn squares() {
-        assert_eq!(square(3), 9);
-        assert_eq!(square(-5), 25);
+    fn twice() {
+        assert_eq!(apply_twice(add_three, 1), 7);
+        assert_eq!(apply_twice(double, 5), 20);
+    }
+
+    #[test]
+    fn negating_twice_changes_nothing() {
+        assert_eq!(apply_twice(negate, 42), 42);
+        assert_eq!(negate(9), -9);
     }
 }

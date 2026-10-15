@@ -1,17 +1,20 @@
 // errors1.rs
 //
-// `generate_nametag_text` returns `None` on bad input, so the caller
-// can't tell *why* it failed. Change it to return a `Result` with an
-// error message instead.
+// `check_username` returns a bool, so when a username is rejected, the
+// user has no idea why. Change it to return a `Result`: `Ok` with the
+// accepted username, or `Err` with a message explaining the problem.
+//
+// The rules, checked in this order:
+//   - not empty                  "username can't be empty"
+//   - at most 12 characters      "username is too long"
+//   - only letters and digits    "username may only contain letters and digits"
 
 // I AM NOT DONE
 
-fn generate_nametag_text(name: String) -> Option<String> {
-    if name.is_empty() {
-        None
-    } else {
-        Some(format!("Hi! My name is {name}"))
-    }
+fn check_username(name: &str) -> bool {
+    !name.is_empty()
+        && name.chars().count() <= 12
+        && name.chars().all(|c| c.is_alphanumeric())
 }
 
 fn main() {}
@@ -21,18 +24,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn generates_nametag_text_for_a_nonempty_name() {
+    fn accepted() {
+        assert_eq!(check_username("ferris42"), Ok("ferris42"));
+    }
+
+    #[test]
+    fn empty() {
+        assert_eq!(check_username(""), Err("username can't be empty".to_string()));
+    }
+
+    #[test]
+    fn too_long() {
         assert_eq!(
-            generate_nametag_text("Beyoncé".to_string()),
-            Ok("Hi! My name is Beyoncé".to_string())
+            check_username("averyverylongname"),
+            Err("username is too long".to_string())
         );
     }
 
     #[test]
-    fn explains_why_generating_nametag_text_fails() {
+    fn bad_characters() {
         assert_eq!(
-            generate_nametag_text(String::new()),
-            Err("Empty names aren't allowed".to_string())
+            check_username("ferris crab"),
+            Err("username may only contain letters and digits".to_string())
         );
     }
 }

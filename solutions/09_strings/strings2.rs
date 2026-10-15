@@ -1,18 +1,36 @@
 // strings2.rs - solution
 //
-// `trim` returns a sub-slice of the input, so no allocation is needed.
-// `format!` (or `String + &str`) builds a new String; `replace` too.
+// - `split_whitespace` handles any amount of spacing. `chars().next()`
+//   gets the first character safely, even for multi-byte characters.
+//   `to_uppercase` returns an iterator, because some characters uppercase
+//   to more than one (ß -> SS).
+// - `is_palindrome` normalises the text into a Vec<char>, then compares it
+//   with its reverse.
+// - `"*".repeat(n)` builds the mask. Note `word.chars().count()`, not
+//   `word.len()`, so the mask matches the visible length.
 
-fn trim_me(input: &str) -> &str {
-    input.trim()
+fn initials(full_name: &str) -> String {
+    let mut result = String::new();
+    for word in full_name.split_whitespace() {
+        if let Some(first) = word.chars().next() {
+            result.extend(first.to_uppercase());
+            result.push('.');
+        }
+    }
+    result
 }
 
-fn compose_me(input: &str) -> String {
-    format!("{input} world!")
+fn is_palindrome(text: &str) -> bool {
+    let cleaned: Vec<char> = text
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(|c| c.to_lowercase())
+        .collect();
+    cleaned.iter().eq(cleaned.iter().rev())
 }
 
-fn replace_me(input: &str) -> String {
-    input.replace("cars", "balloons")
+fn censor(text: &str, word: &str) -> String {
+    text.replace(word, &"*".repeat(word.chars().count()))
 }
 
 fn main() {}
@@ -22,26 +40,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn trim() {
-        assert_eq!(trim_me("  Hello!  "), "Hello!");
-        assert_eq!(trim_me("\tWhat's up!\n"), "What's up!");
+    fn make_initials() {
+        assert_eq!(initials("Grace Brewster Hopper"), "G.B.H.");
+        assert_eq!(initials("  ada   lovelace "), "A.L.");
+        assert_eq!(initials(""), "");
     }
 
     #[test]
-    fn compose() {
-        assert_eq!(compose_me("Hello"), "Hello world!");
-        assert_eq!(compose_me("Goodbye"), "Goodbye world!");
+    fn palindromes() {
+        assert!(is_palindrome("racecar"));
+        assert!(is_palindrome("Never odd or even"));
+        assert!(is_palindrome("A man, a plan, a canal: Panama!"));
+        assert!(!is_palindrome("Rustacean"));
     }
 
     #[test]
-    fn replace() {
-        assert_eq!(
-            replace_me("I think cars are cool"),
-            "I think balloons are cool"
-        );
-        assert_eq!(
-            replace_me("I love to look at cars, cars, cars"),
-            "I love to look at balloons, balloons, balloons"
-        );
+    fn censoring() {
+        assert_eq!(censor("what the heck", "heck"), "what the ****");
+        assert_eq!(censor("bug bug bug", "bug"), "*** *** ***");
+        assert_eq!(censor("all clean", "dirt"), "all clean");
     }
 }

@@ -1,24 +1,62 @@
 // enums1.rs - solution
 //
-// Enum variants can be unit-like, tuple-like, or struct-like.
+// A `match` on an enum must cover every variant. If you later add, say,
+// `FlashingYellow`, the compiler points at every `match` that needs
+// updating. That's a big part of why enums are so useful in Rust.
 
-#[derive(Debug)]
-enum Message {
-    Quit,
-    Echo(String),
-    Move { x: i32, y: i32 },
-    ChangeColor(u8, u8, u8),
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Light {
+    Green,
+    Yellow,
+    Red,
+}
+
+impl Light {
+    fn next(self) -> Light {
+        match self {
+            Light::Green => Light::Yellow,
+            Light::Yellow => Light::Red,
+            Light::Red => Light::Green,
+        }
+    }
+
+    fn seconds(self) -> u32 {
+        match self {
+            Light::Green => 30,
+            Light::Yellow => 3,
+            Light::Red => 20,
+        }
+    }
 }
 
 fn main() {
-    let messages = [
-        Message::Quit,
-        Message::Echo(String::from("hello")),
-        Message::Move { x: 10, y: -3 },
-        Message::ChangeColor(255, 0, 128),
-    ];
+    let mut light = Light::Green;
+    for _ in 0..4 {
+        println!("{light:?} for {}s", light.seconds());
+        light = light.next();
+    }
+}
 
-    for m in &messages {
-        println!("{m:?}");
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cycle() {
+        assert_eq!(Light::Green.next(), Light::Yellow);
+        assert_eq!(Light::Yellow.next(), Light::Red);
+        assert_eq!(Light::Red.next(), Light::Green);
+    }
+
+    #[test]
+    fn full_cycle_takes_53_seconds() {
+        let mut light = Light::Red;
+        let mut total = 0;
+        for _ in 0..3 {
+            total += light.seconds();
+            light = light.next();
+        }
+        assert_eq!(total, 53);
+        assert_eq!(light, Light::Red);
     }
 }

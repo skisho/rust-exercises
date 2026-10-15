@@ -45,73 +45,70 @@ pub const EXERCISES: &[Exercise] = &[
         "intro1",
         "00_intro",
         Run,
-        "Just delete the `// I AM NOT DONE` line and save the file."
+        "Nothing to fix here. Just delete the `// I AM NOT DONE` line and save the file."
     ),
     ex!(
         "intro2",
         "00_intro",
         Run,
-        "There are two `{}` placeholders but no arguments after the format string. \
-         Add a second variable and pass both: `println!(\"...\", a, b)`."
+        "`{}` needs the `Display` trait, which tuples and arrays don't have. Use the debug placeholder `{:?}` instead."
     ),
     // 01 variables
     ex!(
         "variables1",
         "01_variables",
         Run,
-        "Declaring a variable needs a keyword in front of the name."
+        "Each `let advice` disappears at its closing `}`. Declare `advice` once, before the `if`. Since `if` is an expression, you can write `let advice = if raining { ... } else { ... };`."
     ),
     ex!(
         "variables2",
         "01_variables",
         Run,
-        "`x` is declared but never given a value. Assign one in the `let`."
+        "Whole numbers default to `i32`, which tops out around 2.1 billion. Annotate the big ones with a 64-bit type: `let x: u64 = ...;`."
     ),
     ex!(
         "variables3",
         "01_variables",
         Run,
-        "Variables are immutable by default. Which keyword after `let` makes them mutable?"
+        "Variables are immutable by default. Add `mut` after `let`, but only on the variables that actually change."
     ),
     ex!(
         "variables4",
         "01_variables",
-        Run,
-        "You can declare a *new* variable with the same name using another `let`. \
-         This is called shadowing, and the new variable can have a different type."
+        Test,
+        "Work through it one `let` at a time. A `let` inside `{ ... }` only hides the outer variable until the closing brace. In the second test, `parse` turns \"17\" into the number 17."
     ),
     ex!(
         "variables5",
         "01_variables",
         Run,
-        "Unlike `let`, constants always need an explicit type: `const NAME: Type = value;`."
+        "`let` isn't allowed outside functions: use `const NAME: Type = value;` (constants always need a type). An array length must be a constant too, so store `board_area`'s result in a `const`. For that, the function has to be a `const fn`."
     ),
     // 02 functions
     ex!(
         "functions1",
         "02_functions",
-        Run,
-        "Define `fn greet() { ... }` anywhere in the file."
+        Test,
+        "List both parameters, each with its own type: `fn rectangle_area(width: u32, height: u32) -> u32`."
     ),
     ex!(
         "functions2",
         "02_functions",
-        Run,
-        "Every function parameter needs a type, like `from: u32`."
+        Test,
+        "Start with `if age < 3 { return 0; }`. Then compute a `base` price with an `if`/`else if` chain, and finish with `if is_tuesday { base / 2 } else { base }`, with no semicolon."
     ),
     ex!(
         "functions3",
         "02_functions",
         Test,
-        "Declare the return type with `-> i32`. Then look at the semicolon after \
-         `n * n`: a block's last expression is only returned if it has no semicolon."
+        "The parameter list is `f: fn(i32) -> i32, start: i32`, and the function returns `-> i32`. `negate` is an ordinary function returning `-n`."
     ),
     // 03 if
     ex!(
         "if1",
         "03_if",
         Test,
-        "`if` is an expression: `if cond { a } else { b }` evaluates to `a` or `b`."
+        "`if c <= 0.0 { \"freezing\" } else if c < 15.0 { ... } else if ... else { \"hot\" }`. Floats need a decimal point: write `0.0`, not `0`."
     ),
     ex!(
         "if2",
@@ -125,84 +122,77 @@ pub const EXERCISES: &[Exercise] = &[
         "primitive_types1",
         "04_primitive_types",
         Test,
-        "Repeat a value with `[value; count]`. Slice with `&array[start..end]`, \
-         where `end` is exclusive."
+        "`matches!(c.to_ascii_lowercase(), 'a' | 'e' | 'i' | 'o' | 'u')`. For digits: `c as u32 - '0' as u32`. 'é' takes two bytes in UTF-8, and `300 as u8` keeps only the remainder after dividing by 256."
     ),
     ex!(
         "primitive_types2",
         "04_primitive_types",
         Test,
-        "`let (a, b) = tuple;` destructures. Tuple fields are accessed with `.0`, `.1`, ..."
+        "Slice the end with `&week[5..]`. For `extremes`, start `low` and `high` at `week[0]` and loop. `let (low, high) = extremes(&WEEK);` destructures, and `[-3; 7]` repeats a value."
     ),
     // 05 vecs
     ex!(
         "vecs1",
         "05_vecs",
         Test,
-        "`vec![1, 2, 3]` creates a Vec. Don't forget the semicolon."
+        "`Vec::new()`, `queue.push(..)`, `queue.insert(0, ..)`, and `queue.remove(0)`. Check `queue.is_empty()` before removing. Songs arrive as `&str`, so convert them with `.to_string()`."
     ),
     ex!(
         "vecs2",
         "05_vecs",
         Test,
-        "In the loop, `element` is a `&mut i32`. Use `*element` to reach the value. \
-         For the second function: `v.iter().map(|n| ...).collect()`."
+        "`item.1 += amount;` updates the quantity through the `&mut`. `stock.retain(|(_, q)| *q > 0)` keeps the items in stock. `stock.get(index)` returns an Option instead of panicking."
     ),
     // 06 move semantics
     ex!(
         "move_semantics1",
         "06_move_semantics",
         Test,
-        "The function owns `vec`, but the binding is immutable. Parameters can be \
-         declared `mut` too: `fn f(mut x: T)`."
+        "Take `words: &[String]` instead of `Vec<String>`, and call it as `total_letters(&names)`."
     ),
     ex!(
         "move_semantics2",
         "06_move_semantics",
         Test,
-        "`fill_vec(v)` moves `v`, so it can't be used afterwards. Give the function \
-         a copy instead with `.clone()`."
+        "Put `#[derive(Debug, Clone, Copy, PartialEq)]` on `Point`. `Copy` needs `Clone` too."
     ),
     ex!(
         "move_semantics3",
         "06_move_semantics",
         Test,
-        "Take a `&mut String` parameter, and pass `&mut greeting` at the call site."
+        "Take `log: &mut Vec<String>`, declare `let mut log`, and call `record(&mut log, event)`."
     ),
     ex!(
         "move_semantics4",
         "06_move_semantics",
         Test,
-        "`push` needs a mutable borrow while `first` (a shared borrow) is still in use. Move the line that uses `first` so it comes before the push."
+        "Collect the plurals into a new Vec inside the loop, then add them after the loop with `words.extend(plurals)`."
     ),
     ex!(
         "move_semantics5",
         "06_move_semantics",
         Test,
-        "Return `&str` instead of `String`, and take `&str` so literals work too. `s.find(' ')` gives the index of the first space; slice with `&s[..i]`."
+        "Return the owned `String` itself: change the return type to `String` and return `format!(...)` directly."
     ),
     // 07 structs
     ex!(
         "structs1",
         "07_structs",
         Test,
-        "Fields look like `name: Type,`. Tuple struct fields are just types: \
-         `struct Point(f64, f64);`."
+        "The fields are `title: String, author: String, pages: u32, edition: u32`. Shorthand: `Book { title, author, pages, edition: 1 }`. Update syntax: `Book { edition: 2, ..book.clone() }`."
     ),
     ex!(
         "structs2",
         "07_structs",
         Test,
-        "Write `impl Rectangle { ... }`. `new` takes no `self`; `area` and \
-         `can_hold` take `&self`."
+        "`fn open(owner: &str) -> Self` takes no `self`. `balance` takes `&self`; `deposit` and `withdraw` take `&mut self`. In `withdraw`, check `amount > self.balance` before subtracting."
     ),
     // 08 enums
     ex!(
         "enums1",
         "08_enums",
-        Run,
-        "Variants can be plain (`Quit`), hold a tuple (`Echo(String)`), or have \
-         named fields (`Move { x: i32, y: i32 }`)."
+        Test,
+        "Add `Green, Yellow, Red,` to the enum. Then `match self { Light::Green => Light::Yellow, ... }`, with one arm per variant."
     ),
     ex!(
         "enums2",
@@ -216,35 +206,33 @@ pub const EXERCISES: &[Exercise] = &[
         "strings1",
         "09_strings",
         Run,
-        "A string literal is a `&str`. Convert it to an owned String with \
-         `.to_string()` or `String::from(...)`."
+        "`shout` wants a `&str`, so pass `&name`. `store` wants a `String`, so convert the literal with `.to_string()`. Only a `String` can grow, so `motto` must be `String::from(\"fast\")`."
     ),
     ex!(
         "strings2",
         "09_strings",
         Test,
-        "Look for `trim`, `format!` and `replace` in the docs."
+        "`initials`: loop over `split_whitespace()`, take `word.chars().next()`, and push its `to_uppercase()` plus a '.'. `is_palindrome`: collect the lowercase alphanumeric chars into a Vec and compare it with its reverse. `censor`: `text.replace(word, &\"*\".repeat(...))`."
     ),
     // 10 modules
     ex!(
         "modules1",
         "10_modules",
         Run,
-        "Only `make_sausage` needs to be callable from outside the module. Mark it `pub`."
+        "Make `Vault`, `unlock` and the `owner` field `pub`, but not `pin`. Code outside the module can't write a struct literal with a private field, so add a `pub fn new(owner: &str, pin: u32) -> Self` and call it from `main`."
     ),
     ex!(
         "modules2",
         "10_modules",
         Run,
-        "`use a::b::{self, C};` brings both module `b` and item `C` into scope. \
-         Is `veggies` public?"
+        "In `game`, use `super::rules::points_for` (or `crate::rules::points_for`). Add `use game::score as game_score;`. And `banner` needs `pub`."
     ),
     // 11 hashmaps
     ex!(
         "hashmaps1",
         "11_hashmaps",
         Test,
-        "`HashMap::new()` makes an empty map, and `insert(key, value)` adds to it."
+        "`insert` replaces old values. `self.entries.get(name).map(|s| s.as_str())` gives `Option<&str>`. In `rename`, check `contains_key(new)` first, then `remove(old)` and re-`insert` its number under `new`."
     ),
     ex!(
         "hashmaps2",
@@ -264,22 +252,20 @@ pub const EXERCISES: &[Exercise] = &[
         "options2",
         "12_options",
         Test,
-        "The syntax is `if let Some(x) = opt { ... }` and `while let Some(x) = expr { ... }`."
+        "`nickname.unwrap_or(real_name)`, `middle.map(|m| m.len())`, `setting.and_then(|s| s.parse().ok())`, and `score.filter(|&s| s > best)`."
     ),
     // 13 error handling
     ex!(
         "errors1",
         "13_error_handling",
         Test,
-        "Change the return type to `Result<String, String>`, then use `Ok(...)` \
-         and `Err(...)` instead of `Some(...)` and `None`."
+        "Change the return type to `Result<&str, String>`. Check each rule in order with `if` / `else if` and return `Err(\"...\".to_string())` for the first one that fails, or `Ok(name)` at the end."
     ),
     ex!(
         "errors2",
         "13_error_handling",
         Test,
-        "`parse` returns a `Result`. Put `?` after it to get the number out, or \
-         return early with the error."
+        "Put `?` after each `parse::<u32>()`. If parsing fails, `?` returns the error from `parse_size` straight away."
     ),
     ex!(
         "errors3",
@@ -305,13 +291,13 @@ pub const EXERCISES: &[Exercise] = &[
         "generics1",
         "14_generics",
         Test,
-        "`struct Wrapper<T> { value: T }` and `impl<T> Wrapper<T> { ... }`."
+        "`struct Pair<A, B> { first: A, second: B }`, then `impl<A, B> Pair<A, B>`. `swap` returns `Pair<B, A>`."
     ),
     ex!(
         "generics2",
         "14_generics",
         Test,
-        "The `>` operator comes from the `PartialOrd` trait: `fn largest<T: PartialOrd>`."
+        "Comparing needs `PartialOrd` and `{}` needs `Display`. Add `where T: PartialOrd + Display` between the return type and the `{`."
     ),
     ex!(
         "generics3",
@@ -324,8 +310,7 @@ pub const EXERCISES: &[Exercise] = &[
         "traits1",
         "15_traits",
         Test,
-        "Write `fn append_bar(mut self) -> Self { ... }` inside the impl. \
-         `push_str` will help."
+        "`impl Emoji for Weather { fn emoji(&self) -> char { match self { ... } } }`. For bool, `if *self { '✅' } else { '❌' }`. In `forecast`, push each item's emoji onto a String in a loop, or `items.iter().map(|i| i.emoji()).collect()`."
     ),
     ex!(
         "traits2",
@@ -357,35 +342,32 @@ pub const EXERCISES: &[Exercise] = &[
         "lifetimes1",
         "16_lifetimes",
         Test,
-        "Declare a lifetime `<'a>` on the function and use `&'a str` for both \
-         inputs and the output."
+        "Put the lifetime only on `text` and the result: `fn strip_tag<'a>(text: &'a str, tag: &str) -> &'a str`. Giving `tag` the same lifetime breaks the second test."
     ),
     ex!(
         "lifetimes2",
         "16_lifetimes",
         Test,
-        "`struct Excerpt<'a> { part: &'a str }`, then `impl<'a> Excerpt<'a>` and \
-         tie `text` to the same lifetime."
+        "`struct Words<'a> { rest: &'a str }`, `impl<'a> Words<'a>`, `fn new(text: &'a str)`, and `fn next_word(&mut self) -> Option<&'a str>`. Inside, trim the start, find the next space (or use the length), `split_at` there, and keep the rest in `self.rest`."
     ),
     ex!(
         "lifetimes3",
         "16_lifetimes",
         Test,
-        "Both inputs must outlive every use of `result`. Move `string2` out of the inner block, or move the assertion into it."
+        "String literals have the type `&'static str`. Use that for the `reason` field."
     ),
     // 17 tests
     ex!(
         "tests1",
         "17_tests",
         Test,
-        "Call `is_even` with an even number in one test, and use `!is_even(...)` \
-         with an odd number in the other."
+        "Divide by `numbers.len()`, not `len() + 1`, and return `None` early when the slice is empty. The last test needs just one `assert_eq!`."
     ),
     ex!(
         "tests2",
         "17_tests",
         Test,
-        "Put `#[should_panic]` on the tests that are supposed to panic."
+        "Add `-> Result<(), String>` to the first two tests and end each with `Ok(())`. For the third, copy part of the real panic message (\"would make the price negative\") into `expected`."
     ),
     // 18 iterators
     ex!(
@@ -399,8 +381,7 @@ pub const EXERCISES: &[Exercise] = &[
         "iterators2",
         "18_iterators",
         Test,
-        "`first.to_uppercase()` yields chars; `collect::<String>()` them, then \
-         append `chars.as_str()`. `collect()` can produce a Vec or a String."
+        "`split_whitespace().rev().collect::<Vec<_>>().join(\" \")`. `words.iter().map(|&w| (w, w.len())).collect()`. `items.iter().map(|s| s.parse::<i32>()).collect()`: the return type tells `collect` to build a `Result<Vec<_>, _>`."
     ),
     ex!(
         "iterators3",
@@ -426,14 +407,13 @@ pub const EXERCISES: &[Exercise] = &[
         "box1",
         "19_smart_pointers",
         Test,
-        "Change the variant to `Cons(i32, Box<List>)`, then build the list with \
-         nested `Box::new(...)` calls."
+        "Change the variants to `Add(Box<Expr>, Box<Expr>)` and so on. In `eval`, `match expr` and recurse: `Add(a, b) => eval(a) + eval(b)`. Build the example with `mul(add(..), neg(..))`."
     ),
     ex!(
         "rc1",
         "19_smart_pointers",
         Test,
-        "Use `Rc::clone(&sun)` for each planet, and `drop(earth)` to release one."
+        "Use `chill.songs.push(Rc::clone(&anthem));`. Then count the owners: each `Rc` (the original variable plus each clone stored in a playlist) counts as one."
     ),
     ex!(
         "refcell1",
@@ -452,29 +432,26 @@ pub const EXERCISES: &[Exercise] = &[
         "threads1",
         "20_threads",
         Test,
-        "`handle.join()` waits for the thread and returns a Result containing the \
-         closure's return value."
+        "Wrap the body in `thread::scope(|s| { ... })` and spawn with `s.spawn(...)` instead of `thread::spawn`. The scope's closure can return `total`."
     ),
     ex!(
         "threads2",
         "20_threads",
         Test,
-        "Start with `Arc::new(Mutex::new(0))`. Clone the Arc before each spawn, \
-         and use `*counter.lock().unwrap() += 1` inside the thread."
+        "`let tally = Arc::new(Mutex::new(HashMap::new()));`, and `let tally = Arc::clone(&tally);` before each spawn. Inside the thread, `let mut tally = tally.lock().unwrap();`. At the end: `Arc::try_unwrap(tally).unwrap().into_inner().unwrap()`."
     ),
     ex!(
         "threads3",
         "20_threads",
         Test,
-        "Add `let tx = tx.clone();` inside the loop, before `spawn`. Then call `drop(tx);` after the loop, or `rx.iter()` will wait forever for the original sender."
+        "Add `move` to both closures. Clone `report_tx` before `squared_tx` moves into the squarer thread. Then `drop(report_tx)` after sending the marker, or the channel never closes."
     ),
     // 21 macros
     ex!(
         "macros1",
         "21_macros",
-        Run,
-        "Macro calls need a `!`. Also, `macro_rules!` macros must be defined above \
-         where they're used."
+        Test,
+        "Move the macro above `main`. Add a second rule: `($name:expr) => { format!(\"Hello, {}!\", $name) };`."
     ),
     ex!(
         "macros2",
@@ -488,15 +465,13 @@ pub const EXERCISES: &[Exercise] = &[
         "from_into",
         "22_conversions",
         Test,
-        "`s.split_once(',')` returns `Option<(&str, &str)>`. Use `let ... else` or \
-         `match` to bail out early with `Person::default()`."
+        "`impl From<Celsius> for Fahrenheit { fn from(c: Celsius) -> Self { Fahrenheit(c.0 * 9.0 / 5.0 + 32.0) } }`. A tuple parameter can be destructured: `fn from((r, g, b): (u8, u8, u8))`. For hex, use `format!(\"#{:02x}{:02x}{:02x}\", ...)`."
     ),
     ex!(
         "try_from",
         "22_conversions",
         Test,
-        "`u8::try_from(n)` fails for anything outside 0..=255. Use \
-         `.map_err(|_| IntoColorError::OutOfRange)?` on each component."
+        "`match n { 1 => Ok(Weekday::Monday), ..., _ => Err(WeekdayError::OutOfRange(n)) }`. For names, write `impl TryFrom<&str> for Weekday` with `type Error = WeekdayError;` and match on `name.to_ascii_lowercase().as_str()`."
     ),
     // 23 challenges: longer projects, each with a reading list in its header
     ex!(

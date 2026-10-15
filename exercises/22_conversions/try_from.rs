@@ -1,31 +1,43 @@
 // try_from.rs
 //
-// Some conversions can fail. Implement `TryFrom<(i16, i16, i16)>` for
-// `Color`: each component must be in the range 0..=255.
+// `TryFrom` is for conversions that can fail. Implement two ways to get a
+// `Weekday`:
+//   - `TryFrom<u8>`: 1 is Monday ... 7 is Sunday. Anything else is
+//     `WeekdayError::OutOfRange(n)`.
+//   - `TryFrom<&str>`: the first three letters of the English name, in
+//     any case ("mon", "TUE", "Wed"...). Anything else is
+//     `WeekdayError::UnknownName(the input)`.
 
 // I AM NOT DONE
 
 use std::convert::TryFrom;
 
-#[derive(Debug, PartialEq)]
-struct Color {
-    red: u8,
-    green: u8,
-    blue: u8,
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Weekday {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
 }
 
 #[derive(Debug, PartialEq)]
-enum IntoColorError {
-    OutOfRange,
+enum WeekdayError {
+    OutOfRange(u8),
+    UnknownName(String),
 }
 
-impl TryFrom<(i16, i16, i16)> for Color {
-    type Error = IntoColorError;
+impl TryFrom<u8> for Weekday {
+    type Error = WeekdayError;
 
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+    fn try_from(n: u8) -> Result<Self, Self::Error> {
         todo!()
     }
 }
+
+// TODO: impl TryFrom<&str> for Weekday { ... }
 
 fn main() {}
 
@@ -34,33 +46,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn valid() {
+    fn from_numbers() {
+        assert_eq!(Weekday::try_from(1), Ok(Weekday::Monday));
+        assert_eq!(Weekday::try_from(7), Ok(Weekday::Sunday));
+        assert_eq!(Weekday::try_from(0), Err(WeekdayError::OutOfRange(0)));
+        assert_eq!(Weekday::try_from(8), Err(WeekdayError::OutOfRange(8)));
+    }
+
+    #[test]
+    fn from_names() {
+        assert_eq!(Weekday::try_from("wed"), Ok(Weekday::Wednesday));
+        assert_eq!(Weekday::try_from("FRI"), Ok(Weekday::Friday));
         assert_eq!(
-            Color::try_from((183, 65, 14)),
-            Ok(Color {
-                red: 183,
-                green: 65,
-                blue: 14
-            })
+            Weekday::try_from("Funday"),
+            Err(WeekdayError::UnknownName("Funday".to_string()))
         );
     }
 
     #[test]
     fn try_into_works_for_free() {
-        let c: Result<Color, _> = (0, 0, 255).try_into();
-        assert!(c.is_ok());
-    }
-
-    #[test]
-    fn out_of_range() {
-        assert_eq!(
-            Color::try_from((256, 0, 0)),
-            Err(IntoColorError::OutOfRange)
-        );
-        assert_eq!(Color::try_from((0, -1, 0)), Err(IntoColorError::OutOfRange));
-        assert_eq!(
-            Color::try_from((0, 0, 300)),
-            Err(IntoColorError::OutOfRange)
-        );
+        let day: Result<Weekday, _> = 6u8.try_into();
+        assert_eq!(day, Ok(Weekday::Saturday));
+        let day: Result<Weekday, _> = "sun".try_into();
+        assert_eq!(day, Ok(Weekday::Sunday));
     }
 }

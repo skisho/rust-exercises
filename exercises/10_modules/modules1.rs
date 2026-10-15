@@ -1,20 +1,35 @@
 // modules1.rs
 //
-// Make this compile. Everything in a module is private by default.
+// Make this compile. Everything inside a module is private unless it's
+// marked `pub`, and that includes the *fields* of a struct.
+//
+// The vault should keep its PIN secret: code outside the `vault` module
+// must not be able to read or change `pin` directly. So don't make `pin`
+// public. Make only what `main` needs public, and give the module a way
+// to create a `Vault`.
 
 // I AM NOT DONE
 
-mod sausage_factory {
-    fn get_secret_recipe() -> String {
-        String::from("Ginger")
+mod vault {
+    struct Vault {
+        owner: String,
+        pin: u32,
     }
 
-    fn make_sausage() {
-        let _recipe = get_secret_recipe();
-        println!("sausage!");
+    impl Vault {
+        fn unlock(&self, attempt: u32) -> bool {
+            attempt == self.pin
+        }
     }
 }
 
 fn main() {
-    sausage_factory::make_sausage();
+    let v = vault::Vault {
+        owner: String::from("Ferris"),
+        pin: 1234,
+    };
+
+    println!("{}'s vault", v.owner);
+    println!("1111 opens it? {}", v.unlock(1111));
+    println!("1234 opens it? {}", v.unlock(1234));
 }

@@ -1,16 +1,31 @@
 // generics2.rs - solution
 //
-// The `>` operator comes from the `PartialOrd` trait. A generic function
-// can only use what its bounds promise, so `T` must be `PartialOrd`.
+// `<` and `>` come from `PartialOrd`, and `{}` needs `Display`. A `where`
+// clause lists the bounds after the signature, which reads better once
+// there are several. `fn range_label<T: PartialOrd + Display>` is the
+// same thing written inline.
 
-fn largest<T: PartialOrd>(items: &[T]) -> &T {
-    let mut largest = &items[0];
+use std::fmt::Display;
+
+fn range_label<T>(items: &[T]) -> String
+where
+    T: PartialOrd + Display,
+{
+    let Some(first) = items.first() else {
+        return String::from("nothing");
+    };
+
+    let mut low = first;
+    let mut high = first;
     for item in items {
-        if item > largest {
-            largest = item;
+        if item < low {
+            low = item;
+        }
+        if item > high {
+            high = item;
         }
     }
-    largest
+    format!("{low} to {high}")
 }
 
 fn main() {}
@@ -21,16 +36,22 @@ mod tests {
 
     #[test]
     fn numbers() {
-        assert_eq!(*largest(&[34, 50, 25, 100, 65]), 100);
+        assert_eq!(range_label(&[4, 9, 1]), "1 to 9");
     }
 
     #[test]
-    fn chars() {
-        assert_eq!(*largest(&['y', 'm', 'a', 'q']), 'y');
+    fn floats() {
+        assert_eq!(range_label(&[2.5, -0.5]), "-0.5 to 2.5");
     }
 
     #[test]
-    fn strings() {
-        assert_eq!(*largest(&["apple", "pear", "fig"]), "pear");
+    fn words() {
+        assert_eq!(range_label(&["pear", "apple", "fig"]), "apple to pear");
+    }
+
+    #[test]
+    fn empty() {
+        let none: [u8; 0] = [];
+        assert_eq!(range_label(&none), "nothing");
     }
 }

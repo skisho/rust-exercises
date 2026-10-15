@@ -1,13 +1,17 @@
 // move_semantics5.rs
 //
-// `first_word` should return the first word of a sentence *without*
-// allocating a new String: return a slice that borrows from the input.
-// Fix the signature and implement it.
+// `make_greeting` tries to return a reference to a String it created. But
+// that String is dropped when the function returns, so the reference
+// would point at freed memory. Rust calls this a "dangling reference"
+// and refuses to compile it.
+//
+// Fix `make_greeting` so the caller gets something it can keep.
 
 // I AM NOT DONE
 
-fn first_word(s: &String) -> String {
-    todo!()
+fn make_greeting(name: &str) -> &str {
+    let greeting = format!("Hello, {name}!");
+    &greeting
 }
 
 fn main() {}
@@ -17,15 +21,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn from_string() {
-        let sentence = String::from("hello wonderful world");
-        assert_eq!(first_word(&sentence), "hello");
+    fn greets() {
+        assert_eq!(make_greeting("Ferris"), "Hello, Ferris!");
     }
 
     #[test]
-    fn from_literal() {
-        // A more flexible signature also accepts string literals.
-        assert_eq!(first_word("single"), "single");
-        assert_eq!(first_word(""), "");
+    fn greeting_outlives_the_name() {
+        let greeting;
+        {
+            let name = String::from("Ada");
+            greeting = make_greeting(&name);
+        }
+        assert_eq!(greeting, "Hello, Ada!");
     }
 }

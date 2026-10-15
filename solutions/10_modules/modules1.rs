@@ -1,19 +1,35 @@
 // modules1.rs - solution
 //
-// `pub` makes an item visible outside its module. The secret recipe stays
-// private: code inside the module can still call it.
+// `pub struct` makes the type visible, but each field is still private
+// unless it is marked `pub` too. Because `pin` is private, code outside
+// the module can't build a `Vault` with a struct literal, so the module
+// offers a public constructor instead. This is how Rust enforces
+// invariants: only the module's own code can touch the private fields.
 
-mod sausage_factory {
-    fn get_secret_recipe() -> String {
-        String::from("Ginger")
+mod vault {
+    pub struct Vault {
+        pub owner: String,
+        pin: u32,
     }
 
-    pub fn make_sausage() {
-        let _recipe = get_secret_recipe();
-        println!("sausage!");
+    impl Vault {
+        pub fn new(owner: &str, pin: u32) -> Self {
+            Vault {
+                owner: owner.to_string(),
+                pin,
+            }
+        }
+
+        pub fn unlock(&self, attempt: u32) -> bool {
+            attempt == self.pin
+        }
     }
 }
 
 fn main() {
-    sausage_factory::make_sausage();
+    let v = vault::Vault::new("Ferris", 1234);
+
+    println!("{}'s vault", v.owner);
+    println!("1111 opens it? {}", v.unlock(1111));
+    println!("1234 opens it? {}", v.unlock(1234));
 }

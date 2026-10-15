@@ -1,21 +1,29 @@
 // tests2.rs - solution
 //
-// `#[should_panic]` makes a test pass only if it panics. Adding
-// `expected = "..."` also checks the panic message contains that text.
+// Returning `Result<(), String>` from a test lets you write `?` instead of
+// `.unwrap()`. On failure the test reports the `Err` value. Use whatever
+// error type the `?`s produce.
+//
+// `expected` matches a *substring* of the panic message. Checking it makes
+// sure the test panicked for the reason you meant, not because of some
+// unrelated bug.
 
-#[derive(Debug)]
-struct Rectangle {
-    width: i32,
-    height: i32,
+fn parse_percent(text: &str) -> Result<u8, String> {
+    let n: u8 = text
+        .trim_end_matches('%')
+        .parse()
+        .map_err(|_| format!("{text:?} is not a percentage"))?;
+    if n > 100 {
+        return Err(format!("{n}% is more than 100%"));
+    }
+    Ok(n)
 }
 
-impl Rectangle {
-    fn new(width: i32, height: i32) -> Self {
-        if width < 0 || height < 0 {
-            panic!("Rectangle width and height can't be negative");
-        }
-        Rectangle { width, height }
+fn apply_discount(price: u32, percent: u8) -> u32 {
+    if percent > 100 {
+        panic!("discount of {percent}% would make the price negative");
     }
+    price - price * percent as u32 / 100
 }
 
 fn main() {}
@@ -25,21 +33,28 @@ mod tests {
     use super::*;
 
     #[test]
-    fn correct_width_and_height() {
-        let rect = Rectangle::new(10, 20);
-        assert_eq!(rect.width, 10);
-        assert_eq!(rect.height, 20);
+    fn parses() -> Result<(), String> {
+        let p = parse_percent("25%")?;
+        assert_eq!(p, 25);
+        Ok(())
     }
 
     #[test]
-    #[should_panic(expected = "can't be negative")]
-    fn negative_width() {
-        let _rect = Rectangle::new(-10, 10);
+    fn discount_from_text() -> Result<(), String> {
+        let p = parse_percent("10%")?;
+        assert_eq!(apply_discount(250, p), 225);
+        Ok(())
     }
 
     #[test]
-    #[should_panic(expected = "can't be negative")]
-    fn negative_height() {
-        let _rect = Rectangle::new(10, -10);
+    #[should_panic(expected = "would make the price negative")]
+    fn huge_discount_panics() {
+        apply_discount(100, 150);
+    }
+
+    #[test]
+    fn rejects_bad_input() {
+        assert!(parse_percent("lots").is_err());
+        assert_eq!(parse_percent("150%"), Err("150% is more than 100%".to_string()));
     }
 }
